@@ -57,7 +57,7 @@ function init() {
                 eval(`args_reg_arr["arg${index}"] = details.context.x${index}`)
             }
             // 获取手动堆栈信息
-            loginfo += "\n" + stacktrace(ptr(current_off), details.context.fp, details.context.sp).map(addrToString).join('\n')
+            loginfo += "\n" + stacktrace(ptr(current_off), details.context.lr, details.context.fp, details.context.sp).map(addrToString).join('\n')
             // 打印传参
             loginfo += "\nargs = " + JSON.stringify(args_reg_arr)
             // 调用线程syscall 赋值x0寄存器
@@ -401,9 +401,10 @@ function addrToString(addr) {
     return `0x${addr.toString(16)}[unkownmem:]`
 }
 
-function stacktrace(pc, fp, sp) {
+function stacktrace(pc, lr, fp, sp) {
     let n = 0, stack_arr = [], fp_c = fp;
     stack_arr[n++] = pc;
+    stack_arr[n++] = lr;
     const mem_region = call_thread_read_maps(sp);
     while (n < MAX_STACK_TRACE_DEPTH) {
         if (parseInt(fp_c.toString()) < parseInt(sp.toString()) || fp_c < mem_region.start || fp_c > mem_region.end) {
